@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { ParticleBackground } from "@/components/ParticleBackground";
 import { StoryOutput } from "@/components/StoryOutput";
-import { generateStory, type StoryStyle, type GeneratedStory } from "@/lib/storyEngine";
+import { generateStory, generateSimplerVersion, suggestedTopics, type StoryStyle, type ExplainLevel, type GeneratedStory } from "@/lib/storyEngine";
 
 const styles: { value: StoryStyle; label: string }[] = [
   { value: "adventure", label: "Adventure 🏴‍☠️" },
@@ -9,26 +9,60 @@ const styles: { value: StoryStyle; label: string }[] = [
   { value: "emotional", label: "Emotional ❤️" },
 ];
 
+const levels: { value: ExplainLevel; label: string; icon: string }[] = [
+  { value: "child", label: "I'm 5", icon: "🧒" },
+  { value: "student", label: "Student", icon: "🎓" },
+  { value: "developer", label: "Developer", icon: "💻" },
+];
+
+function getRandomTopics(n: number) {
+  const shuffled = [...suggestedTopics].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, n);
+}
+
 export default function Index() {
   const [topic, setTopic] = useState("");
   const [style, setStyle] = useState<StoryStyle>("adventure");
+  const [level, setLevel] = useState<ExplainLevel>("student");
   const [story, setStory] = useState<GeneratedStory | null>(null);
   const [loading, setLoading] = useState(false);
+  const [followUp, setFollowUp] = useState("");
+  const [suggested] = useState(() => getRandomTopics(6));
   const outputRef = useRef<HTMLDivElement>(null);
 
-  const handleGenerate = () => {
-    if (!topic.trim() || loading) return;
+  const handleGenerate = (overrideTopic?: string) => {
+    const t = (overrideTopic || topic).trim();
+    if (!t || loading) return;
+    if (overrideTopic) setTopic(overrideTopic);
     setLoading(true);
     setStory(null);
+    setFollowUp("");
 
     setTimeout(() => {
-      const result = generateStory(topic.trim(), style);
+      const result = generateStory(t, style, level);
       setStory(result);
       setLoading(false);
       setTimeout(() => {
         outputRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
-    }, 1500);
+    }, 1200);
+  };
+
+  const handleSimpler = () => {
+    if (!story || loading) return;
+    setLoading(true);
+    setTimeout(() => {
+      const result = generateSimplerVersion(story, topic.trim());
+      setStory(result);
+      setLoading(false);
+    }, 800);
+  };
+
+  const handleFollowUp = () => {
+    if (!followUp.trim() || loading) return;
+    const combined = `${topic.trim()} — specifically: ${followUp.trim()}`;
+    setFollowUp("");
+    handleGenerate(combined);
   };
 
   return (
@@ -64,10 +98,23 @@ export default function Index() {
               />
             </div>
 
+            {/* Suggested Topics */}
+            <div className="flex flex-wrap gap-2">
+              {suggested.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => handleGenerate(t)}
+                  className="text-xs px-3 py-1.5 rounded-full border border-border text-muted-foreground hover:border-primary/60 hover:text-primary transition-all duration-300"
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+
             {/* Style selector */}
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Choose Story Style
+                Story Style
               </label>
               <div className="flex gap-3">
                 {styles.map((s) => (
@@ -86,10 +133,32 @@ export default function Index() {
               </div>
             </div>
 
-            {/* Buttons */}
+            {/* Explain Like selector */}
+            <div>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
+                Explain Like…
+              </label>
+              <div className="flex gap-3">
+                {levels.map((l) => (
+                  <button
+                    key={l.value}
+                    onClick={() => setLevel(l.value)}
+                    className={`flex-1 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 border ${
+                      level === l.value
+                        ? "bg-accent/20 border-accent text-accent"
+                        : "bg-input border-border text-muted-foreground hover:border-accent/50"
+                    }`}
+                  >
+                    {l.icon} {l.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Generate Button */}
             <div className="flex gap-3 pt-1">
               <button
-                onClick={handleGenerate}
+                onClick={() => handleGenerate()}
                 disabled={!topic.trim() || loading}
                 className="btn-glow flex-1 rounded-xl px-6 py-3 text-primary-foreground font-semibold text-base"
               >
@@ -105,9 +174,10 @@ export default function Index() {
               </button>
               {story && (
                 <button
-                  onClick={handleGenerate}
+                  onClick={() => handleGenerate()}
                   disabled={loading}
                   className="rounded-xl px-5 py-3 border border-border text-muted-foreground font-medium transition-all duration-300 hover:border-primary/50 hover:text-foreground"
+                  title="Another Version"
                 >
                   🔄
                 </button>
@@ -118,8 +188,41 @@ export default function Index() {
 
         {/* Output */}
         <div ref={outputRef}>
-          {story && <StoryOutput story={story} />}
+          {story && (
+            <StoryOutput
+              story={story}
+              onSimpler={handleSimpler}
+              onAnother={() => handleGenerate()}
+              loading={loading}
+            />
+          )}
         </div>
+
+        {/* Follow-up input */}
+        {story && !loading && (
+          <div className="glass-card p-5 mt-6 animate-slide-up">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
+              🧠 Ask a follow-up question…
+            </label>
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={followUp}
+                onChange={(e) => setFollowUp(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleFollowUp()}
+                placeholder="e.g., How does it actually work in practice?"
+                className="flex-1 rounded-xl bg-input px-4 py-2.5 text-foreground placeholder:text-muted-foreground/50 border border-border outline-none transition-all duration-300 input-glow focus:border-primary text-sm"
+              />
+              <button
+                onClick={handleFollowUp}
+                disabled={!followUp.trim()}
+                className="btn-glow rounded-xl px-5 py-2.5 text-primary-foreground font-medium text-sm"
+              >
+                Ask ✨
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
