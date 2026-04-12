@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 
-export function useTypewriter(text: string, speed = 20) {
+export function useTypewriter(text: string, baseSpeed = 14) {
   const [displayed, setDisplayed] = useState("");
   const [done, setDone] = useState(false);
 
@@ -10,17 +10,30 @@ export function useTypewriter(text: string, speed = 20) {
     if (!text) return;
 
     let i = 0;
-    const interval = setInterval(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+
+    const tick = () => {
       i++;
       setDisplayed(text.slice(0, i));
       if (i >= text.length) {
-        clearInterval(interval);
         setDone(true);
+        return;
       }
-    }, speed);
+      // Natural speed variation
+      const char = text[i - 1];
+      let delay = baseSpeed;
+      if (char === '.' || char === '!' || char === '?') delay = baseSpeed * 6;
+      else if (char === ',' || char === ';' || char === ':') delay = baseSpeed * 3;
+      else if (char === '\n') delay = baseSpeed * 4;
+      else if (char === ' ') delay = baseSpeed * 0.5;
+      else delay = baseSpeed + (Math.random() - 0.5) * baseSpeed * 0.6;
 
-    return () => clearInterval(interval);
-  }, [text, speed]);
+      timeout = setTimeout(tick, delay);
+    };
+
+    timeout = setTimeout(tick, baseSpeed);
+    return () => clearTimeout(timeout);
+  }, [text, baseSpeed]);
 
   return { displayed, done };
 }
