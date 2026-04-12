@@ -259,6 +259,38 @@ function getLevelTone(level: ExplainLevel, topic: string, analogy: string): stri
   }
 }
 
+// --------------- TRANSITIONS ---------------
+
+const transitions = [
+  "At first,", "Then,", "Slowly,", "Suddenly,", "After a while,",
+  "Before long,", "Little by little,", "Out of nowhere,", "Eventually,",
+  "Just when they least expected it,", "In that moment,", "Without warning,",
+];
+
+const detailPhrases = [
+  "The air hummed with possibility.",
+  "A flicker of curiosity danced in their eyes.",
+  "The silence was thick with wonder.",
+  "Something shifted — like a door cracking open.",
+  "They could almost feel the pieces rearranging.",
+  "The world around them seemed to hold its breath.",
+  "A quiet excitement began to build.",
+  "Their mind raced, connecting invisible threads.",
+];
+
+// --------------- FLOW STRUCTURES ---------------
+
+type FlowOrder = "classic" | "explanation_first" | "question_driven";
+let lastFlow: FlowOrder | null = null;
+
+function pickFlow(): FlowOrder {
+  const flows: FlowOrder[] = ["classic", "explanation_first", "question_driven"];
+  const available = flows.filter(f => f !== lastFlow);
+  const chosen = pick(available);
+  lastFlow = chosen;
+  return chosen;
+}
+
 // --------------- MAIN GENERATOR ---------------
 
 export function generateStory(
@@ -273,55 +305,71 @@ export function generateStory(
   const topicType = detectTopicType(topic);
   const analogyPool = analogies[topicType] || analogies.general;
   const analogy = pick(analogyPool);
+  const flow = pickFlow();
+  const trans = () => pick(transitions);
+  const detail = () => pick(detailPhrases);
 
-  const sentences: string[] = [];
+  const name = character.split(" ").find(w => w.charAt(0) === w.charAt(0).toUpperCase() && w.length > 2) || character.split(" ")[0];
 
-  // 1. HOOK — randomized opening
-  const opening = getOpening(character, setting, topic);
-  sentences.push(opening.text);
+  // --- Build sections ---
+  const hook = getOpening(character, setting, topic).text;
 
-  // 2. PROBLEM
-  sentences.push(`They were ${goal} ${topic}, ${obstacle}.`);
-  const problemFollowups = [
-    `"Why is ${topic} so ${synonym("confusing")}?" they whispered to themselves.`,
-    `Every explanation they found made it feel even more ${synonym("confusing")}.`,
-    `They asked friends, searched books, but ${topic} remained a total mystery.`,
-    `It was like the more they tried, the further away the answer drifted.`,
-  ];
-  sentences.push(pick(problemFollowups));
+  const problem = [
+    `They were ${goal} ${topic}, ${obstacle}.`,
+    pick([
+      `"Why is ${topic} so ${synonym("confusing")}?" they whispered.`,
+      `Every explanation made it feel even more ${synonym("confusing")}.`,
+      `They asked friends, searched books — ${topic} remained a mystery.`,
+      `The more they tried, the further away the answer drifted.`,
+      `${trans()} the frustration was real. ${detail()}`,
+    ]),
+  ].join("\n\n");
 
-  // 3. SIMPLE EXPLANATION (level-adapted)
   const prefix = getLevelPrefix(level);
-  sentences.push(`Then something clicked. ${prefix} ${topic} is ${getLevelTone(level, topic, analogy)}`);
+  const explanation = [
+    `${trans()} something clicked. ${detail()}`,
+    `${prefix} ${topic} is ${getLevelTone(level, topic, analogy)}`,
+  ].join("\n\n");
 
-  // 4. STYLE ADAPTATION
+  let stylePart: string;
   if (style === "adventure") {
     const verbs = pickN(adventureVerbs, 2);
-    sentences.push(`Fueled by this new understanding, they ${verbs[0]} to explore every corner of ${topic}. 🗺️`);
-    sentences.push(`They ${verbs[1]}, and each step revealed another ${synonym("amazing")} layer.`);
-    sentences.push(`Challenges appeared, but nothing could stop them now — they had the key. 🔑`);
+    stylePart = [
+      `Fueled by this understanding, they ${verbs[0]} to explore every corner of ${topic}. 🗺️`,
+      `${trans()} they ${verbs[1]}, and each step revealed another ${synonym("amazing")} layer. ${detail()}`,
+      `Challenges appeared, but nothing could stop them now — they had the key. 🔑`,
+    ].join("\n\n");
   } else if (style === "funny") {
-    sentences.push(`The moment of clarity was ${pick(funnyPhrases)}.`);
-    sentences.push(`They tried explaining ${topic} to a friend, ${pick(funnyPhrases)}.`);
-    sentences.push(`But hey, at least NOW they actually ${synonym("understand")} ${topic}! 🎉`);
+    stylePart = [
+      `The moment of clarity was ${pick(funnyPhrases)}.`,
+      `They tried explaining ${topic} to a friend, ${pick(funnyPhrases)}.`,
+      `But hey, at least NOW they actually ${synonym("understand")} ${topic}! 🎉`,
+    ].join("\n\n");
   } else {
-    sentences.push(`The journey of learning ${topic} wasn't ${synonym("simple")}, ${pick(emotionalPhrases)}.`);
-    sentences.push(`Every small step forward was a quiet victory, ${pick(emotionalPhrases)}.`);
-    sentences.push(`The struggle made the understanding feel ${synonym("amazing")}. 🌟`);
+    stylePart = [
+      `The journey of learning ${topic} wasn't ${synonym("simple")}, ${pick(emotionalPhrases)}.`,
+      `${trans()} every small step forward was a quiet victory, ${pick(emotionalPhrases)}.`,
+      `The struggle made the understanding feel ${synonym("amazing")}. 🌟`,
+    ].join("\n\n");
   }
 
-  // 5. RESOLUTION
-  const name = character.split(" ").find(w => w.charAt(0) === w.charAt(0).toUpperCase() && w.length > 2) || character.split(" ")[0];
-  const resolutions = [
+  const resolution = pick([
     `In the end, ${name} ${synonym("learned")} ${topic} so well, they could explain it to anyone — even a five-year-old! 🧒`,
-    `And just like that, ${topic} went from being the hardest thing ever to the most ${synonym("simple")} concept in ${name}'s mind.`,
+    `And just like that, ${topic} went from impossible to perfectly ${synonym("simple")} in ${name}'s mind.`,
     `From that day on, ${name} never feared a ${synonym("confusing")} topic again. Knowledge was their superpower. 💡`,
-    `${name} smiled. What once felt impossible was now perfectly clear. The end. 🌈`,
-  ];
-  sentences.push(pick(resolutions));
+    `${name} smiled. What once felt impossible was now crystal clear. ${detail()} The end. 🌈`,
+  ]);
 
-  // Build story with varied sentence lengths
-  const story = sentences.join("\n\n");
+  // --- Assemble based on flow ---
+  let story: string;
+  if (flow === "classic") {
+    story = [hook, problem, explanation, stylePart, resolution].join("\n\n");
+  } else if (flow === "explanation_first") {
+    story = [hook, explanation, problem, stylePart, resolution].join("\n\n");
+  } else {
+    // question_driven: hook → mini explanation → problem deepens → full explanation → resolution
+    story = [hook, explanation.split("\n\n")[0], problem, explanation.split("\n\n")[1] || "", stylePart, resolution].filter(Boolean).join("\n\n");
+  }
 
   const title = `The Story of ${topic}`;
 
