@@ -1,6 +1,9 @@
 import { useState, useRef } from "react";
+import { History } from "lucide-react";
 import { ParticleBackground } from "@/components/ParticleBackground";
 import { StoryOutput } from "@/components/StoryOutput";
+import { HistorySidebar } from "@/components/HistorySidebar";
+import { useStoryHistory } from "@/hooks/useStoryHistory";
 import { generateStory, generateSimplerVersion, suggestedTopics, type StoryStyle, type ExplainLevel, type GeneratedStory } from "@/lib/storyEngine";
 
 const styles: { value: StoryStyle; label: string }[] = [
@@ -28,7 +31,9 @@ export default function Index() {
   const [loading, setLoading] = useState(false);
   const [followUp, setFollowUp] = useState("");
   const [suggested] = useState(() => getRandomTopics(6));
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
+  const { history, addEntry, removeEntry, clearHistory } = useStoryHistory();
 
   const handleGenerate = (overrideTopic?: string) => {
     const t = (overrideTopic || topic).trim();
@@ -41,6 +46,7 @@ export default function Index() {
     setTimeout(() => {
       const result = generateStory(t, style, level);
       setStory(result);
+      addEntry(t, style, level, result);
       setLoading(false);
       setTimeout(() => {
         outputRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -52,8 +58,10 @@ export default function Index() {
     if (!story || loading) return;
     setLoading(true);
     setTimeout(() => {
-      const result = generateSimplerVersion(story, topic.trim());
+      const t = topic.trim();
+      const result = generateSimplerVersion(story, t);
       setStory(result);
+      addEntry(t, "funny", "child", result);
       setLoading(false);
     }, 800);
   };
@@ -65,13 +73,35 @@ export default function Index() {
     handleGenerate(combined);
   };
 
+  const handleSelectHistory = (entry: typeof history[0]) => {
+    setTopic(entry.topic);
+    setStyle(entry.style);
+    setLevel(entry.level);
+    setStory(entry.story);
+    setTimeout(() => {
+      outputRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
+
   return (
     <div className="relative min-h-screen animate-page-enter">
       <ParticleBackground />
 
       <div className="relative z-10 max-w-2xl mx-auto px-4 py-10 sm:py-16">
         {/* Header */}
-        <header className="text-center mb-10 sm:mb-14">
+        <header className="text-center mb-10 sm:mb-14 relative">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="absolute right-0 top-1 p-2.5 rounded-xl border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition-all duration-300"
+            title="Story History"
+          >
+            <History className="w-5 h-5" />
+            {history.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                {history.length > 9 ? "9+" : history.length}
+              </span>
+            )}
+          </button>
           <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold text-foreground glow-text mb-3">
             📖 StorySnap
           </h1>
@@ -224,6 +254,16 @@ export default function Index() {
           </div>
         )}
       </div>
+
+      {/* History Sidebar */}
+      <HistorySidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        history={history}
+        onSelect={handleSelectHistory}
+        onRemove={removeEntry}
+        onClear={clearHistory}
+      />
     </div>
   );
 }
