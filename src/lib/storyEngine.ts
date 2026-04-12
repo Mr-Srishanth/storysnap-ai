@@ -376,7 +376,7 @@ export function generateStory(
   const summaries = [
     `${topic} is essentially ${analogy.replace(/like /i, "").replace(/\s*[^\w\s].?$/, "")}. Once you look at it from the right angle, the complexity melts away.`,
     `At its core, ${topic} follows a ${synonym("simple")} pattern. Break it into small pieces, and each piece makes perfect sense on its own.`,
-    `The secret to ${synonym("understand")}ing ${topic}? Find the right comparison. When you connect it to something familiar, everything clicks.`,
+    `The secret to understanding ${topic}? Find the right comparison. When you connect it to something familiar, everything clicks.`,
   ];
 
   const lessons = [
