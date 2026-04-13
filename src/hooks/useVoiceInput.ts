@@ -16,6 +16,10 @@ export function useVoiceInput(language: Language) {
   const startListening = useCallback((onResult: (text: string) => void) => {
     if (!isSupported) return;
 
+    const SpeechRecognitionCtor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognitionCtor() as SpeechRecognition;
+    if (!isSupported) return;
+
     const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     recognition.lang = langMap[language] || "en-US";
