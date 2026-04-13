@@ -295,4 +295,4 @@ export function generateSimplerVersion(_story: GeneratedStory, topic: string): G
 }
 
 export { suggestedTopics, translations };
-export type { Language };
+
