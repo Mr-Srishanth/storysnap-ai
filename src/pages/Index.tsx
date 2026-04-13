@@ -1,21 +1,23 @@
 import { useState, useRef } from "react";
 import { History } from "lucide-react";
-import { ParticleBackground } from "@/components/ParticleBackground";
 import { StoryOutput } from "@/components/StoryOutput";
 import { HistorySidebar } from "@/components/HistorySidebar";
+import { ProgressBar } from "@/components/ProgressBar";
 import { useStoryHistory } from "@/hooks/useStoryHistory";
+import { useProgress } from "@/hooks/useProgress";
 import { generateStory, generateSimplerVersion, suggestedTopics, type StoryStyle, type ExplainLevel, type GeneratedStory } from "@/lib/storyEngine";
 
 const styles: { value: StoryStyle; label: string }[] = [
-  { value: "adventure", label: "Adventure 🏴‍☠️" },
+  { value: "story", label: "Story 📖" },
   { value: "funny", label: "Funny 😂" },
-  { value: "emotional", label: "Emotional ❤️" },
+  { value: "cinematic", label: "Cinematic 🎬" },
+  { value: "teacher", label: "Teacher 👨‍🏫" },
 ];
 
 const levels: { value: ExplainLevel; label: string; icon: string }[] = [
   { value: "child", label: "I'm 5", icon: "🧒" },
   { value: "student", label: "Student", icon: "🎓" },
-  { value: "developer", label: "Developer", icon: "💻" },
+  { value: "developer", label: "Pro", icon: "💻" },
 ];
 
 function getRandomTopics(n: number) {
@@ -25,7 +27,7 @@ function getRandomTopics(n: number) {
 
 export default function Index() {
   const [topic, setTopic] = useState("");
-  const [style, setStyle] = useState<StoryStyle>("adventure");
+  const [style, setStyle] = useState<StoryStyle>("story");
   const [level, setLevel] = useState<ExplainLevel>("student");
   const [story, setStory] = useState<GeneratedStory | null>(null);
   const [loading, setLoading] = useState(false);
@@ -34,6 +36,7 @@ export default function Index() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
   const { history, addEntry, removeEntry, clearHistory } = useStoryHistory();
+  const { progress, recordTopic, toggleSave, isSaved } = useProgress();
 
   const handleGenerate = (overrideTopic?: string) => {
     const t = (overrideTopic || topic).trim();
@@ -47,11 +50,12 @@ export default function Index() {
       const result = generateStory(t, style, level);
       setStory(result);
       addEntry(t, style, level, result);
+      recordTopic();
       setLoading(false);
       setTimeout(() => {
         outputRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
-    }, 1200);
+    }, 800);
   };
 
   const handleSimpler = () => {
@@ -63,7 +67,7 @@ export default function Index() {
       setStory(result);
       addEntry(t, "funny", "child", result);
       setLoading(false);
-    }, 800);
+    }, 600);
   };
 
   const handleFollowUp = () => {
@@ -84,15 +88,13 @@ export default function Index() {
   };
 
   return (
-    <div className="relative min-h-screen animate-page-enter">
-      <ParticleBackground />
-
-      <div className="relative z-10 max-w-2xl mx-auto px-4 py-10 sm:py-16">
+    <div className="min-h-screen animate-page-enter">
+      <div className="max-w-xl mx-auto px-4 py-8 sm:py-12">
         {/* Header */}
-        <header className="text-center mb-10 sm:mb-14 relative">
+        <header className="text-center mb-6 relative">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="absolute right-0 top-1 p-2.5 rounded-xl border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition-all duration-300"
+            className="absolute right-0 top-0 p-2 rounded-xl border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition-all duration-200"
             title="Story History"
           >
             <History className="w-5 h-5" />
@@ -102,20 +104,30 @@ export default function Index() {
               </span>
             )}
           </button>
-          <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold text-foreground glow-text mb-3">
-            📖 StorySnap
+          <h1 className="font-heading text-3xl sm:text-4xl font-extrabold text-foreground mb-1">
+            ⚡ StorySnap AI
           </h1>
-          <p className="text-muted-foreground text-lg sm:text-xl">
-            Learn Anything in a Snap ⚡
+          <p className="text-muted-foreground text-sm sm:text-base">
+            Learn Anything in a Snap
           </p>
         </header>
 
+        {/* Progress bar */}
+        <div className="mb-6">
+          <ProgressBar
+            streak={progress.streak}
+            topicsLearned={progress.topicsLearned}
+            dailyCount={progress.dailyCount}
+            dailyGoal={progress.dailyGoal}
+          />
+        </div>
+
         {/* Input Card */}
-        <div className="glass-card p-6 sm:p-8 mb-8">
-          <div className="space-y-5">
+        <div className="story-card p-5 sm:p-6 mb-6">
+          <div className="space-y-4">
             {/* Topic input */}
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5">
                 What do you want to learn?
               </label>
               <input
@@ -123,19 +135,15 @@ export default function Index() {
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
-                placeholder="Enter a hard topic (e.g., AI, Blockchain, Quantum Physics)"
-                className="w-full rounded-xl bg-input px-4 py-3 text-foreground placeholder:text-muted-foreground/50 border border-border outline-none transition-all duration-300 input-glow focus:border-primary"
+                placeholder="e.g., AI, Blockchain, Quantum Physics"
+                className="input-field"
               />
             </div>
 
             {/* Suggested Topics */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {suggested.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => handleGenerate(t)}
-                  className="text-xs px-3 py-1.5 rounded-full border border-border text-muted-foreground hover:border-primary/60 hover:text-primary transition-all duration-300"
-                >
+                <button key={t} onClick={() => handleGenerate(t)} className="chip">
                   {t}
                 </button>
               ))}
@@ -143,18 +151,16 @@ export default function Index() {
 
             {/* Style selector */}
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Story Style
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+                Style
               </label>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 {styles.map((s) => (
                   <button
                     key={s.value}
                     onClick={() => setStyle(s.value)}
-                    className={`flex-1 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 border ${
-                      style === s.value
-                        ? "bg-primary/20 border-primary text-primary glow-primary"
-                        : "bg-input border-border text-muted-foreground hover:border-primary/50"
+                    className={`flex-1 rounded-xl px-2 py-2 text-sm font-medium transition-all duration-200 border ${
+                      style === s.value ? "chip-active" : "border-border text-muted-foreground hover:border-primary/40"
                     }`}
                   >
                     {s.label}
@@ -163,20 +169,18 @@ export default function Index() {
               </div>
             </div>
 
-            {/* Explain Like selector */}
+            {/* Level selector */}
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-1.5">
                 Explain Like…
               </label>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 {levels.map((l) => (
                   <button
                     key={l.value}
                     onClick={() => setLevel(l.value)}
-                    className={`flex-1 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 border ${
-                      level === l.value
-                        ? "bg-accent/20 border-accent text-accent"
-                        : "bg-input border-border text-muted-foreground hover:border-accent/50"
+                    className={`flex-1 rounded-xl px-2 py-2 text-sm font-medium transition-all duration-200 border ${
+                      level === l.value ? "chip-active" : "border-border text-muted-foreground hover:border-primary/40"
                     }`}
                   >
                     {l.icon} {l.label}
@@ -186,33 +190,20 @@ export default function Index() {
             </div>
 
             {/* Generate Button */}
-            <div className="flex gap-3 pt-1">
-              <button
-                onClick={() => handleGenerate()}
-                disabled={!topic.trim() || loading}
-                className="btn-glow flex-1 rounded-xl px-6 py-3 text-primary-foreground font-semibold text-base"
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="inline-block w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    Generating
-                    <span className="loading-dots" />
-                  </span>
-                ) : (
-                  "Generate Story ✨"
-                )}
-              </button>
-              {story && (
-                <button
-                  onClick={() => handleGenerate()}
-                  disabled={loading}
-                  className="rounded-xl px-5 py-3 border border-border text-muted-foreground font-medium transition-all duration-300 hover:border-primary/50 hover:text-foreground"
-                  title="Another Version"
-                >
-                  🔄
-                </button>
+            <button
+              onClick={() => handleGenerate()}
+              disabled={!topic.trim() || loading}
+              className="btn-primary w-full text-base"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="inline-block w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  Generating<span className="loading-dots" />
+                </span>
+              ) : (
+                "Generate Story ✨"
               )}
-            </div>
+            </button>
           </div>
         </div>
 
@@ -223,30 +214,33 @@ export default function Index() {
               story={story}
               onSimpler={handleSimpler}
               onAnother={() => handleGenerate()}
+              onNextTopic={(t) => handleGenerate(t)}
               loading={loading}
+              isSaved={isSaved(topic)}
+              onToggleSave={() => toggleSave(topic)}
             />
           )}
         </div>
 
         {/* Follow-up input */}
         {story && !loading && (
-          <div className="glass-card p-5 mt-6 animate-slide-up">
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
-              🧠 Ask a follow-up question…
+          <div className="story-card p-4 mt-5 animate-slide-up">
+            <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+              🧠 Still confused? Ask anything…
             </label>
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <input
                 type="text"
                 value={followUp}
                 onChange={(e) => setFollowUp(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleFollowUp()}
-                placeholder="e.g., How does it actually work in practice?"
-                className="flex-1 rounded-xl bg-input px-4 py-2.5 text-foreground placeholder:text-muted-foreground/50 border border-border outline-none transition-all duration-300 input-glow focus:border-primary text-sm"
+                placeholder="e.g., How does it actually work?"
+                className="input-field flex-1 !py-2.5 text-sm"
               />
               <button
                 onClick={handleFollowUp}
                 disabled={!followUp.trim()}
-                className="btn-glow rounded-xl px-5 py-2.5 text-primary-foreground font-medium text-sm"
+                className="btn-primary !px-5 !py-2.5 text-sm"
               >
                 Ask ✨
               </button>
