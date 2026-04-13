@@ -9,34 +9,30 @@ const langMap: Record<Language, string> = {
 
 export function useVoiceInput(language: Language) {
   const [listening, setListening] = useState(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
 
   const isSupported = typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
 
   const startListening = useCallback((onResult: (text: string) => void) => {
     if (!isSupported) return;
 
-    const SpeechRecognitionCtor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognitionCtor() as SpeechRecognition;
-    if (!isSupported) return;
+    const Ctor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const rec = new Ctor();
+    rec.lang = langMap[language] || "en-US";
+    rec.continuous = false;
+    rec.interimResults = false;
 
-    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.lang = langMap[language] || "en-US";
-    recognition.continuous = false;
-    recognition.interimResults = false;
-
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    rec.onresult = (event: any) => {
       const text = event.results[0][0].transcript;
       onResult(text);
       setListening(false);
     };
 
-    recognition.onerror = () => setListening(false);
-    recognition.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+    rec.onend = () => setListening(false);
 
-    recognitionRef.current = recognition;
-    recognition.start();
+    recognitionRef.current = rec;
+    rec.start();
     setListening(true);
   }, [language, isSupported]);
 
