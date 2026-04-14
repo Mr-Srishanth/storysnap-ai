@@ -1,48 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
-
 @layer base {
   :root {
-    --background: 40 33% 98%;
-    --foreground: 220 20% 15%;
+    --background: 330 30% 97%;
+    --foreground: 260 20% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 15%;
+    --card-foreground: 260 20% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 15%;
+    --popover-foreground: 260 20% 20%;
 
-    --primary: 250 70% 58%;
+    --primary: 280 60% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 35 95% 55%;
+    --secondary: 330 70% 65%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 15% 92%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 280 15% 93%;
+    --muted-foreground: 260 10% 48%;
 
-    --accent: 160 60% 45%;
+    --accent: 160 50% 45%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 88%;
-    --input: 220 15% 95%;
-    --ring: 250 70% 58%;
+    --border: 280 15% 90%;
+    --input: 280 10% 96%;
+    --ring: 280 60% 60%;
 
-    --radius: 1rem;
+    --radius: 1.25rem;
 
     /* Custom tokens */
     --success: 145 60% 45%;
     --warning: 35 95% 55%;
     --streak: 35 95% 55%;
-    --progress: 250 70% 58%;
+    --progress: 280 60% 60%;
     --quiz-correct: 145 60% 45%;
     --quiz-wrong: 0 84% 60%;
+    --gradient-start: 280 60% 60%;
+    --gradient-end: 330 70% 65%;
   }
 }
 
@@ -68,20 +70,21 @@
   }
 
   .input-field {
-    @apply w-full rounded-xl bg-input px-4 py-3 text-foreground placeholder:text-muted-foreground/60 border border-border outline-none transition-all duration-300;
+    @apply w-full rounded-[20px] bg-input px-5 py-3.5 text-foreground placeholder:text-muted-foreground/60 border border-border outline-none transition-all duration-300;
+    box-shadow: 0 2px 8px hsl(var(--primary) / 0.04);
   }
   .input-field:focus {
     border-color: hsl(var(--primary));
-    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.12);
+    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.1), 0 2px 8px hsl(var(--primary) / 0.06);
   }
 
   .btn-primary {
-    @apply relative overflow-hidden rounded-xl px-6 py-3 font-semibold text-primary-foreground transition-all duration-300;
-    background: hsl(var(--primary));
+    @apply relative overflow-hidden rounded-[20px] px-8 py-3.5 font-bold text-primary-foreground transition-all duration-300;
+    background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-end)));
   }
   .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px hsl(var(--primary) / 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px hsl(var(--primary) / 0.35);
   }
   .btn-primary:active {
     transform: translateY(0);
@@ -94,7 +97,7 @@
   }
 
   .chip {
-    @apply text-xs px-3 py-1.5 rounded-full border border-border text-muted-foreground transition-all duration-200 cursor-pointer;
+    @apply text-xs px-4 py-2 rounded-full border border-border text-muted-foreground transition-all duration-200 cursor-pointer font-medium;
   }
   .chip:hover {
     border-color: hsl(var(--primary) / 0.5);
@@ -102,8 +105,8 @@
     background: hsl(var(--primary) / 0.06);
   }
   .chip-active {
-    @apply border-primary text-primary;
-    background: hsl(var(--primary) / 0.1);
+    @apply text-primary-foreground font-semibold border-transparent;
+    background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-end)));
   }
 
   .typewriter-cursor::after {
@@ -138,6 +141,11 @@
     100% { transform: scale(1); }
   }
 
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+  }
+
   .animate-page-enter {
     animation: page-enter 0.5s ease-out;
   }
@@ -150,6 +158,10 @@
     animation: celebrate 0.4s ease-out;
   }
 
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+
   .loading-dots::after {
     content: '';
     animation: dots 1.5s infinite;
@@ -159,20 +171,34 @@
     @apply font-bold;
     color: hsl(var(--primary));
     background: linear-gradient(120deg, hsl(var(--primary) / 0.1) 0%, hsl(var(--primary) / 0.05) 100%);
-    padding: 2px 6px;
-    border-radius: 4px;
+    padding: 2px 8px;
+    border-radius: 6px;
   }
 
   .streak-badge {
-    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold;
+    @apply inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-bold;
     background: hsl(var(--streak) / 0.12);
     color: hsl(var(--streak));
   }
 
   .progress-ring {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold;
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold;
     background: hsl(var(--progress) / 0.1);
     color: hsl(var(--progress));
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-end)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .badge-pill {
+    @apply inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold;
+    background: hsl(var(--primary) / 0.08);
+    color: hsl(var(--primary));
+    border: 1px solid hsl(var(--primary) / 0.15);
   }
 }
 

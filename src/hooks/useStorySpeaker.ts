@@ -7,10 +7,27 @@ const voiceLangMap: Record<Language, string> = {
   te: "te",
 };
 
-function findVoice(lang: Language): SpeechSynthesisVoice | null {
+function findVoices(lang: Language): { narrator: SpeechSynthesisVoice | null; character: SpeechSynthesisVoice | null } {
   const voices = speechSynthesis.getVoices();
   const prefix = voiceLangMap[lang];
-  return voices.find(v => v.lang.startsWith(prefix)) || voices[0] || null;
+  const matching = voices.filter(v => v.lang.startsWith(prefix));
+
+  if (matching.length >= 2) {
+    // Try to pick different genders or names
+    const female = matching.find(v => /female|woman|zira|samantha|karen|priya|lekha/i.test(v.name));
+    const male = matching.find(v => /male|man|david|daniel|ravi|google.*male/i.test(v.name));
+    return {
+      narrator: female || matching[0],
+      character: male || matching[1] || matching[0],
+    };
+  }
+
+  const fallback = matching[0] || voices[0] || null;
+  return { narrator: fallback, character: fallback };
+}
+
+function isDialogueLine(line: string): boolean {
+  return /^[""\u201C\u201D]/.test(line.trim()) || /[""\u201C\u201D].*said|asked|muttered|whispered|yelled|replied|grinned|laughed|groaned/i.test(line);
 }
 
 export function useStorySpeaker() {
@@ -22,11 +39,8 @@ export function useStorySpeaker() {
   const lineIdxRef = useRef(0);
   const stoppedRef = useRef(false);
 
-  // Cleanup on unmount
   useEffect(() => {
-    return () => {
-      speechSynthesis.cancel();
-    };
+    return () => { speechSynthesis.cancel(); };
   }, []);
 
   const speakLine = useCallback((lang: Language) => {
@@ -48,16 +62,24 @@ export function useStorySpeaker() {
     setCurrentLine(lineIdxRef.current);
 
     const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.rate = 0.9;
-    utterance.pitch = 1.05;
+    const { narrator, character } = findVoices(lang);
+    const isDialogue = isDialogueLine(line);
 
-    const voice = findVoice(lang);
-    if (voice) utterance.voice = voice;
+    // Dual voice: narrator vs character
+    if (isDialogue) {
+      utterance.rate = 1.0;
+      utterance.pitch = 1.1;
+      if (character) utterance.voice = character;
+    } else {
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      if (narrator) utterance.voice = narrator;
+    }
 
     utterance.onend = () => {
       lineIdxRef.current++;
-      // Pause between lines (300-500ms)
-      setTimeout(() => speakLine(lang), 300 + Math.random() * 200);
+      const pause = 300 + Math.random() * 400;
+      setTimeout(() => speakLine(lang), pause);
     };
 
     utteranceRef.current = utterance;
