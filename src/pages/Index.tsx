@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { History, Mic, MicOff } from "lucide-react";
+import { History, Mic, MicOff, BookOpen, Compass, Heart, Info, Search } from "lucide-react";
 import { StoryOutput } from "@/components/StoryOutput";
 import { HistorySidebar } from "@/components/HistorySidebar";
 import { ProgressBar } from "@/components/ProgressBar";
@@ -7,6 +7,7 @@ import { useStoryHistory } from "@/hooks/useStoryHistory";
 import { useProgress } from "@/hooks/useProgress";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { generateStory, generateSimplerVersion, suggestedTopics, type StoryStyle, type ExplainLevel, type Language, type GeneratedStory } from "@/lib/storyEngine";
+import heroBook from "@/assets/hero-book.png";
 
 const styles: { value: StoryStyle; label: string }[] = [
   { value: "story", label: "Story 📖" },
@@ -16,15 +17,15 @@ const styles: { value: StoryStyle; label: string }[] = [
 ];
 
 const levels: { value: ExplainLevel; label: string; icon: string }[] = [
-  { value: "child", label: "I'm 5", icon: "🧒" },
+  { value: "child", label: "ELI5", icon: "👶" },
   { value: "student", label: "Student", icon: "🎓" },
-  { value: "developer", label: "Pro", icon: "💻" },
+  { value: "developer", label: "Advanced", icon: "🧠" },
 ];
 
 const languages: { value: Language; label: string }[] = [
-  { value: "en", label: "English 🇬🇧" },
-  { value: "hi", label: "हिन्दी 🇮🇳" },
-  { value: "te", label: "తెలుగు 🇮🇳" },
+  { value: "en", label: "English" },
+  { value: "hi", label: "हिन्दी" },
+  { value: "te", label: "తెలుగు" },
 ];
 
 function getRandomTopics(n: number) {
@@ -105,31 +106,135 @@ export default function Index() {
 
   return (
     <div className="min-h-screen animate-page-enter">
-      <div className="max-w-xl mx-auto px-4 py-10 sm:py-14">
-        {/* Header */}
-        <header className="text-center mb-8 relative">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="absolute right-0 top-0 p-2.5 rounded-xl border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition-all duration-200"
-            title="Story History"
-          >
-            <History className="w-5 h-5" />
+      {/* Nav */}
+      <nav className="flex items-center justify-between px-6 sm:px-10 py-4 max-w-7xl mx-auto">
+        <div className="flex items-center gap-2">
+          <BookOpen className="w-6 h-6 text-primary" />
+          <span className="font-heading font-extrabold text-lg text-primary">Story Learning AI</span>
+        </div>
+        <div className="hidden sm:flex items-center gap-6 text-sm font-medium text-muted-foreground">
+          <button className="flex items-center gap-1.5 hover:text-primary transition-colors">
+            <BookOpen className="w-4 h-4" /> Home
+          </button>
+          <button className="flex items-center gap-1.5 hover:text-primary transition-colors">
+            <Compass className="w-4 h-4" /> Explore
+          </button>
+          <button onClick={() => setSidebarOpen(true)} className="flex items-center gap-1.5 hover:text-primary transition-colors relative">
+            <Heart className="w-4 h-4" /> Saved
             {history.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+              <span className="absolute -top-1.5 -right-3 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
                 {history.length > 9 ? "9+" : history.length}
               </span>
             )}
           </button>
-          <h1 className="font-heading text-4xl sm:text-5xl font-extrabold text-foreground mb-2">
-            ⚡ StorySnap AI
-          </h1>
-          <p className="text-muted-foreground text-sm sm:text-base">
-            Learn Anything in a Snap
-          </p>
-        </header>
+          <button className="flex items-center gap-1.5 hover:text-primary transition-colors">
+            <Info className="w-4 h-4" /> About
+          </button>
+        </div>
+        {/* Mobile history button */}
+        <button onClick={() => setSidebarOpen(true)} className="sm:hidden p-2 rounded-xl text-muted-foreground hover:text-primary transition-colors relative">
+          <History className="w-5 h-5" />
+          {history.length > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
+              {history.length > 9 ? "9+" : history.length}
+            </span>
+          )}
+        </button>
+      </nav>
 
-        {/* Progress bar */}
-        <div className="mb-8">
+      {/* Hero Section — Split Layout */}
+      <section className="max-w-7xl mx-auto px-6 sm:px-10 pt-8 pb-10">
+        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+          {/* Left side */}
+          <div className="flex-1 max-w-xl">
+            <span className="badge-pill mb-4 inline-block">✨ AI-Powered Learning</span>
+            <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-black text-foreground leading-tight mb-4">
+              Story Learning <span className="gradient-text">AI</span>
+            </h1>
+            <p className="text-muted-foreground text-base sm:text-lg mb-1">
+              Turn hard topics into simple stories ✨
+            </p>
+            <p className="text-muted-foreground text-sm mb-8">
+              Learn anything like a story 📖
+            </p>
+
+            {/* Input */}
+            <div className="flex gap-2 mb-5">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                <input
+                  type="text"
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
+                  placeholder="Type a topic... e.g., Gravity, Photosynthesis"
+                  className="input-field !pl-11"
+                />
+              </div>
+              {voice.isSupported && (
+                <button
+                  onClick={handleMic}
+                  className={`p-3.5 rounded-[20px] border transition-all duration-200 shrink-0 ${
+                    voice.listening
+                      ? "border-red-400 bg-red-50 text-red-500 animate-pulse"
+                      : "border-border text-muted-foreground hover:text-primary hover:border-primary/40"
+                  }`}
+                  title={voice.listening ? "Stop listening" : "Voice input"}
+                >
+                  {voice.listening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                </button>
+              )}
+            </div>
+
+            {/* Level pills */}
+            <div className="flex gap-2 mb-5">
+              {levels.map((l) => (
+                <button
+                  key={l.value}
+                  onClick={() => setLevel(l.value)}
+                  className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                    level === l.value ? "chip-active" : "chip"
+                  }`}
+                >
+                  {l.icon} {l.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Generate */}
+            <button
+              onClick={() => handleGenerate()}
+              disabled={!topic.trim() || loading}
+              className="btn-primary text-base py-3.5 px-10"
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <span className="inline-block w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  Generating<span className="loading-dots" />
+                </span>
+              ) : (
+                "✨ Explain as Story"
+              )}
+            </button>
+          </div>
+
+          {/* Right side — Illustration */}
+          <div className="flex-1 flex justify-center lg:justify-end max-w-md lg:max-w-lg">
+            <img
+              src={heroBook}
+              alt="Magical storybook with characters"
+              width={1024}
+              height={1024}
+              className="w-full max-w-sm lg:max-w-md animate-float select-none pointer-events-none"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Controls — below hero on wider screens */}
+      <section className="max-w-2xl mx-auto px-6 sm:px-10 pb-6">
+        {/* Progress */}
+        <div className="mb-6">
           <ProgressBar
             streak={progress.streak}
             topicsLearned={progress.topicsLearned}
@@ -138,127 +243,54 @@ export default function Index() {
           />
         </div>
 
-        {/* Input Card */}
-        <div className="story-card p-6 sm:p-8 mb-8">
-          <div className="space-y-5">
-            {/* Topic input with mic */}
-            <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
-                What do you want to learn?
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
-                  placeholder="e.g., AI, Blockchain, Quantum Physics"
-                  className="input-field flex-1"
-                />
-                {voice.isSupported && (
-                  <button
-                    onClick={handleMic}
-                    className={`p-3 rounded-xl border transition-all duration-200 shrink-0 ${
-                      voice.listening
-                        ? "border-red-400 bg-red-50 text-red-500 animate-pulse"
-                        : "border-border text-muted-foreground hover:text-primary hover:border-primary/40"
-                    }`}
-                    title={voice.listening ? "Stop listening" : "Voice input"}
-                  >
-                    {voice.listening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-                  </button>
-                )}
-              </div>
-            </div>
+        {/* Suggested Topics */}
+        <div className="flex flex-wrap gap-2 mb-5 justify-center">
+          {suggested.map((t) => (
+            <button key={t} onClick={() => handleGenerate(t)} className="chip">
+              {t}
+            </button>
+          ))}
+        </div>
 
-            {/* Suggested Topics */}
-            <div className="flex flex-wrap gap-2">
-              {suggested.map((t) => (
-                <button key={t} onClick={() => handleGenerate(t)} className="chip">
-                  {t}
+        {/* Style & Language selectors */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="flex-1">
+            <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Style</label>
+            <div className="flex gap-2">
+              {styles.map((s) => (
+                <button
+                  key={s.value}
+                  onClick={() => setStyle(s.value)}
+                  className={`flex-1 rounded-full px-2 py-2 text-xs font-semibold transition-all duration-200 ${
+                    style === s.value ? "chip-active" : "chip"
+                  }`}
+                >
+                  {s.label}
                 </button>
               ))}
             </div>
-
-            {/* Language selector */}
-            <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Language
-              </label>
-              <div className="flex gap-2">
-                {languages.map((l) => (
-                  <button
-                    key={l.value}
-                    onClick={() => setLang(l.value)}
-                    className={`flex-1 rounded-xl px-2 py-2.5 text-sm font-medium transition-all duration-200 border ${
-                      lang === l.value ? "chip-active" : "border-border text-muted-foreground hover:border-primary/40"
-                    }`}
-                  >
-                    {l.label}
-                  </button>
-                ))}
-              </div>
+          </div>
+          <div className="sm:w-48">
+            <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Language</label>
+            <div className="flex gap-2">
+              {languages.map((l) => (
+                <button
+                  key={l.value}
+                  onClick={() => setLang(l.value)}
+                  className={`flex-1 rounded-full px-2 py-2 text-xs font-semibold transition-all duration-200 ${
+                    lang === l.value ? "chip-active" : "chip"
+                  }`}
+                >
+                  {l.label}
+                </button>
+              ))}
             </div>
-
-            {/* Style selector */}
-            <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Style
-              </label>
-              <div className="flex gap-2">
-                {styles.map((s) => (
-                  <button
-                    key={s.value}
-                    onClick={() => setStyle(s.value)}
-                    className={`flex-1 rounded-xl px-2 py-2.5 text-sm font-medium transition-all duration-200 border ${
-                      style === s.value ? "chip-active" : "border-border text-muted-foreground hover:border-primary/40"
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Level selector */}
-            <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Explain Like…
-              </label>
-              <div className="flex gap-2">
-                {levels.map((l) => (
-                  <button
-                    key={l.value}
-                    onClick={() => setLevel(l.value)}
-                    className={`flex-1 rounded-xl px-2 py-2.5 text-sm font-medium transition-all duration-200 border ${
-                      level === l.value ? "chip-active" : "border-border text-muted-foreground hover:border-primary/40"
-                    }`}
-                  >
-                    {l.icon} {l.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Generate Button */}
-            <button
-              onClick={() => handleGenerate()}
-              disabled={!topic.trim() || loading}
-              className="btn-primary w-full text-base py-3.5"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="inline-block w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  Generating<span className="loading-dots" />
-                </span>
-              ) : (
-                "Generate Story ✨"
-              )}
-            </button>
           </div>
         </div>
+      </section>
 
-        {/* Output */}
+      {/* Output */}
+      <section className="max-w-2xl mx-auto px-6 sm:px-10 pb-10">
         <div ref={outputRef}>
           {story && (
             <StoryOutput
@@ -273,7 +305,7 @@ export default function Index() {
           )}
         </div>
 
-        {/* Follow-up input */}
+        {/* Follow-up */}
         {story && !loading && (
           <div className="story-card p-5 sm:p-6 mt-6 animate-slide-up">
             <label className="block text-sm font-medium text-muted-foreground mb-2">
@@ -298,7 +330,7 @@ export default function Index() {
             </div>
           </div>
         )}
-      </div>
+      </section>
 
       {/* History Sidebar */}
       <HistorySidebar
