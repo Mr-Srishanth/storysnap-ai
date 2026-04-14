@@ -37,10 +37,10 @@ export function StoryOutput({ story, onSimpler, onAnother, onNextTopic, loading,
 
   return (
     <div className="animate-slide-up">
-      <div className="story-card p-7 sm:p-10">
+      <div className={`story-card p-7 sm:p-10 ${immersive ? "!bg-transparent !border-none !shadow-none" : ""}`}>
         {/* Title + actions */}
         <div className="flex items-start justify-between mb-6">
-          <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground leading-tight">
+          <h2 className={`font-heading text-2xl sm:text-3xl font-bold leading-tight ${immersive ? "text-background" : "text-foreground"}`}>
             📖 {story.title}
           </h2>
           <div className="flex gap-2 ml-4 shrink-0">
