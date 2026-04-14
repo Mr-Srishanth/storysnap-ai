@@ -12,9 +12,10 @@ interface StoryOutputProps {
   loading: boolean;
   isSaved: boolean;
   onToggleSave: () => void;
+  immersive?: boolean;
 }
 
-export function StoryOutput({ story, onSimpler, onAnother, onNextTopic, loading, isSaved, onToggleSave }: StoryOutputProps) {
+export function StoryOutput({ story, onSimpler, onAnother, onNextTopic, loading, isSaved, onToggleSave, immersive = false }: StoryOutputProps) {
   const { displayed, done } = useTypewriter(story.story, 18);
   const speaker = useStorySpeaker();
   const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
