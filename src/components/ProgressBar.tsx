@@ -11,21 +11,27 @@ export function ProgressBar({ streak, topicsLearned, dailyCount, dailyGoal }: Pr
 
   return (
     <div className="flex items-center gap-3 flex-wrap justify-center">
+      {/* Streak */}
       {streak > 0 && (
-        <span className="streak-badge">🔥 {streak} day{streak > 1 ? "s" : ""}</span>
+        <span className="streak-badge">
+          🔥 {streak} day{streak > 1 ? "s" : ""}
+        </span>
       )}
-      <span className="progress-ring">🧠 {topicsLearned} learned</span>
-      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium" style={{
-        background: "hsl(var(--muted))",
-        color: "hsl(var(--muted-foreground))",
-      }}>
+
+      {/* Topics */}
+      <span className="progress-ring">
+        🧠 {topicsLearned} learned
+      </span>
+
+      {/* Daily goal */}
+      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-muted text-muted-foreground">
         🎯 {dailyCount}/{dailyGoal}
-        <span className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--border))" }}>
+        <span className="w-16 h-1.5 rounded-full bg-border overflow-hidden">
           <span
             className="block h-full rounded-full transition-all duration-500"
             style={{
               width: `${pct}%`,
-              background: goalMet ? "hsl(var(--success))" : "hsl(var(--primary))",
+              background: goalMet ? "hsl(var(--accent))" : "hsl(var(--primary))",
             }}
           />
         </span>

@@ -6,49 +6,45 @@
 
 @layer base {
   :root {
-    --background: 230 25% 7%;
-    --foreground: 220 20% 95%;
+    --background: 330 30% 97%;
+    --foreground: 260 20% 20%;
 
-    --card: 230 20% 12%;
-    --card-foreground: 220 20% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 260 20% 20%;
 
-    --popover: 230 20% 12%;
-    --popover-foreground: 220 20% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 260 20% 20%;
 
-    --primary: 260 80% 65%;
+    --primary: 280 60% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 320 70% 60%;
+    --secondary: 330 70% 65%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 230 15% 18%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 280 15% 93%;
+    --muted-foreground: 260 10% 48%;
 
-    --accent: 200 80% 55%;
+    --accent: 160 50% 45%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 230 15% 20%;
-    --input: 230 15% 15%;
-    --ring: 260 80% 65%;
+    --border: 280 15% 90%;
+    --input: 280 10% 96%;
+    --ring: 280 60% 60%;
 
-    --radius: 1rem;
+    --radius: 1.25rem;
 
     /* Custom tokens */
     --success: 145 60% 45%;
     --warning: 35 95% 55%;
     --streak: 35 95% 55%;
-    --progress: 260 80% 65%;
+    --progress: 280 60% 60%;
     --quiz-correct: 145 60% 45%;
     --quiz-wrong: 0 84% 60%;
-    --gradient-start: 260 80% 65%;
-    --gradient-mid: 220 80% 60%;
-    --gradient-end: 320 70% 60%;
-
-    --glass: 230 20% 14%;
-    --glass-border: 230 15% 22%;
+    --gradient-start: 280 60% 60%;
+    --gradient-end: 330 70% 65%;
   }
 }
 
@@ -64,43 +60,31 @@
 }
 
 @layer components {
-  .glass-card {
-    @apply rounded-2xl border;
-    background: hsl(var(--glass) / 0.7);
-    border-color: hsl(var(--glass-border));
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+  .story-card {
+    @apply rounded-2xl border border-border bg-card shadow-sm;
     transition: all 0.3s ease;
   }
-  .glass-card:hover {
-    border-color: hsl(var(--primary) / 0.3);
-    box-shadow: 0 8px 40px hsl(var(--primary) / 0.1);
+  .story-card:hover {
+    box-shadow: 0 8px 30px hsl(var(--primary) / 0.08);
     transform: translateY(-2px);
-  }
-
-  .story-card {
-    @apply glass-card;
   }
 
   .input-field {
-    @apply w-full rounded-2xl px-5 py-3.5 text-foreground placeholder:text-muted-foreground/50 border outline-none transition-all duration-300;
-    background: hsl(var(--input));
-    border-color: hsl(var(--glass-border));
+    @apply w-full rounded-[20px] bg-input px-5 py-3.5 text-foreground placeholder:text-muted-foreground/60 border border-border outline-none transition-all duration-300;
+    box-shadow: 0 2px 8px hsl(var(--primary) / 0.04);
   }
   .input-field:focus {
     border-color: hsl(var(--primary));
-    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.15), 0 0 30px hsl(var(--primary) / 0.1);
+    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.1), 0 2px 8px hsl(var(--primary) / 0.06);
   }
 
   .btn-primary {
-    @apply relative overflow-hidden rounded-2xl px-8 py-3.5 font-bold text-primary-foreground transition-all duration-300;
-    background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-mid)), hsl(var(--gradient-end)));
-    background-size: 200% 200%;
-    animation: gradient-shift 3s ease infinite;
+    @apply relative overflow-hidden rounded-[20px] px-8 py-3.5 font-bold text-primary-foreground transition-all duration-300;
+    background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-end)));
   }
   .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px hsl(var(--primary) / 0.4), 0 0 60px hsl(var(--primary) / 0.15);
+    box-shadow: 0 6px 24px hsl(var(--primary) / 0.35);
   }
   .btn-primary:active {
     transform: translateY(0);
@@ -112,26 +96,17 @@
     cursor: not-allowed;
   }
 
-  @keyframes gradient-shift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-
   .chip {
-    @apply text-xs px-4 py-2 rounded-full border text-muted-foreground transition-all duration-200 cursor-pointer font-medium;
-    border-color: hsl(var(--glass-border));
-    background: hsl(var(--glass) / 0.5);
+    @apply text-xs px-4 py-2 rounded-full border border-border text-muted-foreground transition-all duration-200 cursor-pointer font-medium;
   }
   .chip:hover {
     border-color: hsl(var(--primary) / 0.5);
     color: hsl(var(--primary));
-    background: hsl(var(--primary) / 0.1);
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.1);
+    background: hsl(var(--primary) / 0.06);
   }
   .chip-active {
     @apply text-primary-foreground font-semibold border-transparent;
     background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-end)));
-    box-shadow: 0 4px 15px hsl(var(--primary) / 0.3);
   }
 
   .typewriter-cursor::after {
@@ -171,11 +146,6 @@
     50% { transform: translateY(-12px); }
   }
 
-  @keyframes glow-pulse {
-    0%, 100% { box-shadow: 0 0 20px hsl(var(--primary) / 0.2); }
-    50% { box-shadow: 0 0 40px hsl(var(--primary) / 0.4); }
-  }
-
   .animate-page-enter {
     animation: page-enter 0.5s ease-out;
   }
@@ -192,10 +162,6 @@
     animation: float 4s ease-in-out infinite;
   }
 
-  .animate-glow {
-    animation: glow-pulse 2s ease-in-out infinite;
-  }
-
   .loading-dots::after {
     content: '';
     animation: dots 1.5s infinite;
@@ -204,25 +170,25 @@
   .aha-highlight {
     @apply font-bold;
     color: hsl(var(--primary));
-    background: linear-gradient(120deg, hsl(var(--primary) / 0.15) 0%, hsl(var(--primary) / 0.05) 100%);
+    background: linear-gradient(120deg, hsl(var(--primary) / 0.1) 0%, hsl(var(--primary) / 0.05) 100%);
     padding: 2px 8px;
     border-radius: 6px;
   }
 
   .streak-badge {
     @apply inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-bold;
-    background: hsl(var(--streak) / 0.15);
+    background: hsl(var(--streak) / 0.12);
     color: hsl(var(--streak));
   }
 
   .progress-ring {
     @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold;
-    background: hsl(var(--progress) / 0.12);
+    background: hsl(var(--progress) / 0.1);
     color: hsl(var(--progress));
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-mid)), hsl(var(--gradient-end)));
+    background: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-end)));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -230,21 +196,9 @@
 
   .badge-pill {
     @apply inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold;
-    background: hsl(var(--primary) / 0.1);
+    background: hsl(var(--primary) / 0.08);
     color: hsl(var(--primary));
-    border: 1px solid hsl(var(--primary) / 0.2);
-  }
-
-  /* Scene player */
-  .scene-image-container {
-    @apply relative rounded-2xl overflow-hidden;
-    aspect-ratio: 16/9;
-    background: linear-gradient(135deg, hsl(var(--glass)), hsl(var(--card)));
-  }
-
-  .scene-progress-bar {
-    @apply h-1 rounded-full transition-all duration-300;
-    background: linear-gradient(90deg, hsl(var(--gradient-start)), hsl(var(--gradient-end)));
+    border: 1px solid hsl(var(--primary) / 0.15);
   }
 }
 

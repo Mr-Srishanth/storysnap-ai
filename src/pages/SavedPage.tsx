@@ -72,7 +72,7 @@ export default function SavedPage() {
 
         {history.length === 0 ? (
           <div className="text-center py-20">
-            <Heart className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
+            <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
             <p className="text-lg font-heading font-bold text-muted-foreground mb-2">No saved stories yet</p>
             <p className="text-sm text-muted-foreground mb-6">Generate your first story to see it here</p>
             <Link to="/create" className="btn-primary inline-flex items-center gap-2 text-sm py-2.5 px-6">
@@ -85,7 +85,7 @@ export default function SavedPage() {
               <button
                 key={entry.id}
                 onClick={() => setSelected(entry)}
-                className="w-full text-left glass-card p-5 group flex items-start gap-4"
+                className="w-full text-left story-card p-5 group flex items-start gap-4"
               >
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 text-lg">
                   {styleEmoji[entry.style] || "📖"}

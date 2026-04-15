@@ -30,8 +30,11 @@ export default function ExplorePage() {
         <h1 className="font-heading text-2xl sm:text-3xl font-black text-foreground mb-2 text-center">
           🔍 Explore Topics
         </h1>
-        <p className="text-muted-foreground text-sm text-center mb-6">Discover what to learn next</p>
+        <p className="text-muted-foreground text-sm text-center mb-6">
+          Discover what to learn next
+        </p>
 
+        {/* Search */}
         <div className="relative mb-6">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
           <input
@@ -43,6 +46,7 @@ export default function ExplorePage() {
           />
         </div>
 
+        {/* Categories */}
         <div className="flex gap-2 overflow-x-auto pb-3 mb-6 scrollbar-hide">
           <button
             onClick={() => setActiveCategory(null)}
@@ -65,18 +69,21 @@ export default function ExplorePage() {
           ))}
         </div>
 
+        {/* Topic Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {filtered.map((topic) => (
             <Link
               key={topic}
               to={`/create?topic=${encodeURIComponent(topic)}`}
-              className="glass-card p-5 flex items-center gap-3 group"
+              className="story-card p-5 flex items-center gap-3 group"
             >
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                 <TrendingUp className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-heading font-bold text-foreground text-sm group-hover:text-primary transition-colors truncate">{topic}</p>
+                <p className="font-heading font-bold text-foreground text-sm group-hover:text-primary transition-colors truncate">
+                  {topic}
+                </p>
                 <p className="text-xs text-muted-foreground">Tap to learn →</p>
               </div>
             </Link>
