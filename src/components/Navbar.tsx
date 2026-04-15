@@ -1,8 +1,8 @@
 import { NavLink } from "react-router-dom";
-import { BookOpen, Sparkles, Compass, Heart } from "lucide-react";
+import { Sparkles, Compass, Heart, Home } from "lucide-react";
 
 const navItems = [
-  { to: "/", label: "Home", icon: BookOpen },
+  { to: "/", label: "Home", icon: Home },
   { to: "/create", label: "Create", icon: Sparkles },
   { to: "/explore", label: "Explore", icon: Compass },
   { to: "/saved", label: "Saved", icon: Heart },
@@ -12,8 +12,8 @@ export function Navbar() {
   return (
     <nav className="flex items-center justify-between px-6 sm:px-10 py-4 max-w-7xl mx-auto">
       <NavLink to="/" className="flex items-center gap-2">
-        <BookOpen className="w-6 h-6 text-primary" />
-        <span className="font-heading font-extrabold text-lg text-primary">StorySnap AI</span>
+        <span className="text-xl">✨</span>
+        <span className="font-heading font-extrabold text-lg gradient-text">StorySnap AI</span>
       </NavLink>
       <div className="hidden sm:flex items-center gap-1">
         {navItems.map(({ to, label, icon: Icon }) => (
