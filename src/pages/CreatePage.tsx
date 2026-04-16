@@ -1,34 +1,35 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Mic, MicOff, Search, Maximize2, Minimize2 } from "lucide-react";
-import { StoryOutput } from "@/components/StoryOutput";
-import { ProgressBar } from "@/components/ProgressBar";
+import { Mic, MicOff, Maximize2, Minimize2 } from "lucide-react";
+import { StoryPlayer } from "@/components/StoryPlayer";
 import { useStoryHistory } from "@/hooks/useStoryHistory";
 import { useProgress } from "@/hooks/useProgress";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import {
-  generateStory, generateSimplerVersion, suggestedTopics,
+  generateStory, suggestedTopics,
   type StoryStyle, type ExplainLevel, type Language, type GeneratedStory,
 } from "@/lib/storyEngine";
 
-const styles: { value: StoryStyle; label: string }[] = [
-  { value: "story", label: "📖 Story" },
-  { value: "funny", label: "😂 Funny" },
-  { value: "cinematic", label: "🎬 Cinematic" },
-  { value: "teacher", label: "👨‍🏫 Teacher" },
+const styles: { value: StoryStyle; label: string; emoji: string }[] = [
+  { value: "story", label: "Story", emoji: "📖" },
+  { value: "funny", label: "Funny", emoji: "😂" },
+  { value: "cinematic", label: "Cinematic", emoji: "🎬" },
+  { value: "teacher", label: "Teacher", emoji: "👨‍🏫" },
 ];
 
-const levels: { value: ExplainLevel; label: string }[] = [
-  { value: "child", label: "👶 ELI5" },
-  { value: "student", label: "🎓 Student" },
-  { value: "developer", label: "🧠 Advanced" },
+const levels: { value: ExplainLevel; label: string; emoji: string }[] = [
+  { value: "child", label: "ELI5", emoji: "👶" },
+  { value: "student", label: "Student", emoji: "🎓" },
+  { value: "developer", label: "Advanced", emoji: "🧠" },
 ];
 
-const languages: { value: Language; label: string }[] = [
-  { value: "en", label: "English" },
-  { value: "hi", label: "हिन्दी" },
-  { value: "te", label: "తెలుగు" },
+const languages: { value: Language; label: string; flag: string }[] = [
+  { value: "en", label: "English", flag: "🇺🇸" },
+  { value: "hi", label: "हिन्दी", flag: "🇮🇳" },
+  { value: "te", label: "తెలుగు", flag: "🇮🇳" },
 ];
+
+const placeholders = ["AI…", "Blockchain…", "Gravity…", "DNA…", "Black Holes…", "Evolution…"];
 
 function getRandomTopics(n: number) {
   return [...suggestedTopics].sort(() => Math.random() - 0.5).slice(0, n);
@@ -42,20 +43,26 @@ export default function CreatePage() {
   const [lang, setLang] = useState<Language>("en");
   const [story, setStory] = useState<GeneratedStory | null>(null);
   const [loading, setLoading] = useState(false);
-  const [followUp, setFollowUp] = useState("");
-  const [suggested] = useState(() => getRandomTopics(6));
   const [immersive, setImmersive] = useState(false);
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
   const outputRef = useRef<HTMLDivElement>(null);
   const { addEntry } = useStoryHistory();
-  const { progress, recordTopic, toggleSave, isSaved } = useProgress();
+  const { recordTopic, toggleSave, isSaved } = useProgress();
   const voice = useVoiceInput(lang);
+  const suggested = useMemo(() => getRandomTopics(5), []);
 
-  // Auto-generate if topic comes from URL
+  // Animated placeholder
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIdx(i => (i + 1) % placeholders.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Auto-generate from URL
   useEffect(() => {
     const urlTopic = searchParams.get("topic");
-    if (urlTopic && !story) {
-      handleGenerate(urlTopic);
-    }
+    if (urlTopic && !story) handleGenerate(urlTopic);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -65,7 +72,6 @@ export default function CreatePage() {
     if (overrideTopic) setTopic(overrideTopic);
     setLoading(true);
     setStory(null);
-    setFollowUp("");
     setTimeout(() => {
       const result = generateStory(t, style, level, lang);
       setStory(result);
@@ -76,31 +82,13 @@ export default function CreatePage() {
     }, 800);
   };
 
-  const handleSimpler = () => {
-    if (!story || loading) return;
-    setLoading(true);
-    setTimeout(() => {
-      const result = generateSimplerVersion(story, topic.trim(), lang);
-      setStory(result);
-      addEntry(topic.trim(), "funny", "child", result);
-      setLoading(false);
-    }, 600);
-  };
-
-  const handleFollowUp = () => {
-    if (!followUp.trim() || loading) return;
-    handleGenerate(`${topic.trim()} — specifically: ${followUp.trim()}`);
-    setFollowUp("");
-  };
-
   const handleMic = () => {
     if (voice.listening) voice.stopListening();
     else voice.startListening((text) => setTopic(text));
   };
 
-  // Immersive mode wrapper
   const containerClass = immersive
-    ? "fixed inset-0 z-50 bg-foreground text-background overflow-y-auto"
+    ? "fixed inset-0 z-50 bg-foreground overflow-y-auto"
     : "animate-page-enter pb-20 sm:pb-10";
 
   return (
@@ -111,180 +99,157 @@ export default function CreatePage() {
           onClick={() => setImmersive(!immersive)}
           className={`fixed top-4 right-4 z-[60] p-2.5 rounded-xl border transition-all duration-200 ${
             immersive
-              ? "border-background/30 text-background/70 hover:text-background bg-foreground/80"
+              ? "border-background/30 text-background/70 hover:text-background"
               : "border-border text-muted-foreground hover:text-primary bg-card"
           }`}
-          title={immersive ? "Exit Focus Mode" : "Focus Mode"}
         >
           {immersive ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
         </button>
       )}
 
       {!immersive && (
-        <>
-          {/* Input Section */}
-          <section className="max-w-2xl mx-auto px-6 sm:px-10 pt-6 pb-4">
-            <h1 className="font-heading text-2xl sm:text-3xl font-black text-foreground mb-6 text-center">
-              ✨ Create a Story
-            </h1>
+        <section className="max-w-2xl mx-auto px-5 sm:px-10 pt-8 pb-4">
+          {/* Input with mic inside */}
+          <div className="relative mb-5">
+            <input
+              type="text"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
+              placeholder={`What do you want to learn? e.g. ${placeholders[placeholderIdx]}`}
+              className="input-field !pr-14 text-base sm:text-lg !py-4"
+            />
+            {voice.isSupported && (
+              <button
+                onClick={handleMic}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all duration-300 ${
+                  voice.listening
+                    ? "bg-destructive/10 text-destructive mic-pulse"
+                    : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+                }`}
+              >
+                {voice.listening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              </button>
+            )}
+          </div>
 
-            {/* Progress */}
-            <div className="mb-6">
-              <ProgressBar
-                streak={progress.streak}
-                topicsLearned={progress.topicsLearned}
-                dailyCount={progress.dailyCount}
-                dailyGoal={progress.dailyGoal}
-              />
-            </div>
+          {/* Quick suggestions */}
+          <div className="flex flex-wrap gap-2 mb-6 justify-center">
+            {suggested.map((t) => (
+              <button key={t} onClick={() => handleGenerate(t)} className="chip text-xs">
+                {t}
+              </button>
+            ))}
+          </div>
 
-            {/* Topic input */}
-            <div className="flex gap-2 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
-                <input
-                  type="text"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
-                  placeholder="Type a topic... e.g., Gravity, Photosynthesis"
-                  className="input-field !pl-11"
-                />
-              </div>
-              {voice.isSupported && (
-                <button
-                  onClick={handleMic}
-                  className={`p-3.5 rounded-[20px] border transition-all duration-200 shrink-0 ${
-                    voice.listening
-                      ? "border-red-400 bg-red-50 text-red-500 animate-pulse"
-                      : "border-border text-muted-foreground hover:text-primary hover:border-primary/40"
-                  }`}
-                >
-                  {voice.listening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-                </button>
-              )}
-            </div>
-
-            {/* Suggested */}
-            <div className="flex flex-wrap gap-2 mb-5 justify-center">
-              {suggested.map((t) => (
-                <button key={t} onClick={() => handleGenerate(t)} className="chip text-xs">
-                  {t}
-                </button>
-              ))}
-            </div>
-
-            {/* Selectors */}
-            <div className="space-y-4 mb-5">
-              {/* Level */}
-              <div className="flex gap-2">
-                {levels.map((l) => (
+          {/* Option Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            {/* Mode */}
+            <div className="glass-card p-4">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">🧠 Mode</h3>
+              <div className="space-y-1.5">
+                {levels.map(l => (
                   <button
                     key={l.value}
                     onClick={() => setLevel(l.value)}
-                    className={`flex-1 rounded-full px-3 py-2.5 text-sm font-semibold transition-all duration-200 ${
-                      level === l.value ? "chip-active" : "chip"
+                    className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      level === l.value
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "text-muted-foreground hover:bg-muted border border-transparent"
                     }`}
                   >
-                    {l.label}
+                    {l.emoji} {l.label}
                   </button>
                 ))}
               </div>
+            </div>
 
-              {/* Style + Language row */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1">
-                  <label className="block text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">Style</label>
-                  <div className="flex gap-1.5">
-                    {styles.map((s) => (
-                      <button
-                        key={s.value}
-                        onClick={() => setStyle(s.value)}
-                        className={`flex-1 rounded-full px-2 py-2 text-xs font-semibold transition-all duration-200 ${
-                          style === s.value ? "chip-active" : "chip"
-                        }`}
-                      >
-                        {s.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="sm:w-44">
-                  <label className="block text-xs font-semibold text-muted-foreground mb-1.5 uppercase tracking-wider">Language</label>
-                  <div className="flex gap-1.5">
-                    {languages.map((l) => (
-                      <button
-                        key={l.value}
-                        onClick={() => setLang(l.value)}
-                        className={`flex-1 rounded-full px-2 py-2 text-xs font-semibold transition-all duration-200 ${
-                          lang === l.value ? "chip-active" : "chip"
-                        }`}
-                      >
-                        {l.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            {/* Style */}
+            <div className="glass-card p-4">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">🎨 Style</h3>
+              <div className="space-y-1.5">
+                {styles.map(s => (
+                  <button
+                    key={s.value}
+                    onClick={() => setStyle(s.value)}
+                    className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      style === s.value
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "text-muted-foreground hover:bg-muted border border-transparent"
+                    }`}
+                  >
+                    {s.emoji} {s.label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Generate button */}
-            <button
-              onClick={() => handleGenerate()}
-              disabled={!topic.trim() || loading}
-              className="btn-primary w-full text-base py-3.5"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="inline-block w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  Generating<span className="loading-dots" />
-                </span>
-              ) : (
-                "✨ Generate Story"
-              )}
-            </button>
-          </section>
-        </>
+            {/* Language */}
+            <div className="glass-card p-4">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">🌍 Language</h3>
+              <div className="space-y-1.5">
+                {languages.map(l => (
+                  <button
+                    key={l.value}
+                    onClick={() => setLang(l.value)}
+                    className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      lang === l.value
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "text-muted-foreground hover:bg-muted border border-transparent"
+                    }`}
+                  >
+                    {l.flag} {l.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Generate Button */}
+          <button
+            onClick={() => handleGenerate()}
+            disabled={!topic.trim() || loading}
+            className="btn-primary w-full text-base py-4 group"
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-3">
+                <span className="inline-block w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                <span>Creating your story<span className="loading-dots" /></span>
+              </span>
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                ✨ Generate Story
+              </span>
+            )}
+          </button>
+
+          {/* Loading shimmer */}
+          {loading && (
+            <div className="mt-6 space-y-3 animate-pulse">
+              <div className="h-6 bg-muted rounded-xl w-3/4" />
+              <div className="h-4 bg-muted rounded-xl w-full" />
+              <div className="h-4 bg-muted rounded-xl w-5/6" />
+              <div className="h-4 bg-muted rounded-xl w-2/3" />
+              <div className="h-10 bg-muted rounded-xl w-1/2 mt-4" />
+            </div>
+          )}
+        </section>
       )}
 
-      {/* Story Output */}
-      <section className={`max-w-2xl mx-auto px-6 sm:px-10 ${immersive ? "pt-16 pb-10" : "pb-10"}`}>
+      {/* Story Player */}
+      <section className={`max-w-3xl mx-auto px-5 sm:px-10 ${immersive ? "pt-16 pb-10" : "pb-10"}`}>
         <div ref={outputRef}>
-          {story && (
-            <StoryOutput
+          {story && !loading && (
+            <StoryPlayer
               story={story}
-              onSimpler={handleSimpler}
               onAnother={() => handleGenerate()}
               onNextTopic={(t) => handleGenerate(t)}
-              loading={loading}
               isSaved={isSaved(topic)}
               onToggleSave={() => toggleSave(topic)}
               immersive={immersive}
             />
           )}
         </div>
-
-        {/* Follow-up */}
-        {story && !loading && !immersive && (
-          <div className="story-card p-5 sm:p-6 mt-6 animate-slide-up">
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
-              🧠 Still confused? Ask anything…
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={followUp}
-                onChange={(e) => setFollowUp(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleFollowUp()}
-                placeholder="e.g., How does it actually work?"
-                className="input-field flex-1 !py-3 text-sm"
-              />
-              <button onClick={handleFollowUp} disabled={!followUp.trim()} className="btn-primary !px-6 !py-3 text-sm">
-                Ask ✨
-              </button>
-            </div>
-          </div>
-        )}
       </section>
     </div>
   );

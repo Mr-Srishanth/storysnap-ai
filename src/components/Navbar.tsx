@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { BookOpen, Sparkles, Compass, Heart } from "lucide-react";
+import { BookOpen, Sparkles, Compass, Clock, Heart } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Home", icon: BookOpen },
   { to: "/create", label: "Create", icon: Sparkles },
   { to: "/explore", label: "Explore", icon: Compass },
+  { to: "/history", label: "History", icon: Clock },
   { to: "/saved", label: "Saved", icon: Heart },
 ];
 
