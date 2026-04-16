@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Heart, Play, Pause, Square, Volume2, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import type { GeneratedStory } from "@/lib/storyEngine";
 import { useStorySpeaker } from "@/hooks/useStorySpeaker";
@@ -19,6 +19,10 @@ export function StoryPlayer({ story, onAnother, onNextTopic, isSaved, onToggleSa
   const [autoPlay, setAutoPlay] = useState(false);
   const [quizAnswer, setQuizAnswer] = useState<number | null>(null);
   const speaker = useStorySpeaker();
+  
+  // Swipe gesture support
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
   // Reset on new story
   useEffect(() => {
@@ -58,6 +62,30 @@ export function StoryPlayer({ story, onAnother, onNextTopic, isSaved, onToggleSa
     speaker.play(scenes[currentScene], story.language);
   };
 
+  // Swipe gesture handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const swipeDistance = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 50; // minimum pixels to trigger swipe
+
+    if (Math.abs(swipeDistance) > minSwipeDistance) {
+      if (swipeDistance > 0) {
+        // Swiped left → next scene
+        goNext();
+      } else {
+        // Swiped right → previous scene
+        goPrev();
+      }
+    }
+  };
+
   const isLastScene = currentScene === scenes.length - 1;
   const progress = ((currentScene + 1) / scenes.length) * 100;
 
@@ -95,7 +123,12 @@ export function StoryPlayer({ story, onAnother, onNextTopic, isSaved, onToggleSa
         </div>
 
         {/* Scene content */}
-        <div className="p-5 sm:p-8 min-h-[180px] flex items-center">
+        <div 
+          className="p-5 sm:p-8 min-h-[180px] flex items-center touch-pan-y select-none"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <p
             className={`text-lg sm:text-xl leading-relaxed transition-all duration-700 ${
               revealed ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
